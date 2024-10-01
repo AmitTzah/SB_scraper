@@ -17,7 +17,7 @@ def parse_number(value):
 
 def calculate_ratio(row):
     """Calculate the followers-to-views ratio for a row."""
-    watchers = parse_number(row['watchers'])
+    watchers = max(0, parse_number(row['watchers']) - 1)  # Subtract 1 and ensure it's not negative
     views = parse_number(row['views'])
     
     if views == 0:
@@ -40,14 +40,17 @@ def sort_fictions_by_ratio(input_file, output_file):
     
     # Write sorted fictions to the output CSV file
     with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
-        fieldnames = ['title', 'watchers', 'views', 'ratio', 'replies', 'likes', 'tags']
+        fieldnames = ['title', 'watchers', 'adjusted_watchers', 'views', 'ratio', 'replies', 'likes', 'tags']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         
         writer.writeheader()
         for fiction in sorted_fictions:
+            watchers = parse_number(fiction['watchers'])
+            adjusted_watchers = max(0, watchers - 1)  # Ensure it's not negative
             writer.writerow({
                 'title': fiction['title'],
                 'watchers': fiction['watchers'],
+                'adjusted_watchers': f"{adjusted_watchers:.0f}",
                 'views': fiction['views'],
                 'ratio': f"{fiction['ratio']:.6f}",
                 'replies': fiction['replies'],
