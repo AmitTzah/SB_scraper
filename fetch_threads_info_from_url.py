@@ -12,13 +12,10 @@ def fetch_watcher_count(thread_url):
             return "N/A"
         
         soup = BeautifulSoup(response.content, 'html.parser')
-
-        # Locate the container with the Watcher count
         header_content = soup.find('div', class_='threadmarkListingHeader-content')
         watcher_count = "N/A"
         
         if header_content:
-            # Search for all <dl> elements within the header content
             pairs = header_content.find_all('dl', class_='pairs pairs--rows')
             for pair in pairs:
                 if pair.find('dt') and 'Watchers' in pair.find('dt').text:
@@ -33,11 +30,10 @@ def fetch_watcher_count(thread_url):
 def fetch_fictions(base_url, params):
     fictions = []
     page = 1
-    
+
     while True:
         print(f"\nFetching page {page}...")
         
-        # Construct the URL correctly based on the page number
         if page == 1:
             url = f"{base_url}/?{params}"
         else:
@@ -52,7 +48,6 @@ def fetch_fictions(base_url, params):
         
         soup = BeautifulSoup(response.content, 'html.parser')
         threads = soup.find_all('div', class_='structItem--thread')
-        
         print(f"Found {len(threads)} thread divs on page {page}")
         
         if not threads:
@@ -63,7 +58,6 @@ def fetch_fictions(base_url, params):
             print(f"\nProcessing thread {i} on page {page}")
             
             title_element = thread.find('a', attrs={'data-xf-init': 'preview-tooltip'})
-            
             if title_element:
                 title = title_element.text.strip()
                 thread_url = title_element['href']
@@ -106,7 +100,6 @@ def fetch_fictions(base_url, params):
 
                 # Be nice to the server
                 time.sleep(2)
-
                 
             else:
                 print("Couldn't find stats div")
@@ -125,9 +118,17 @@ def fetch_fictions(base_url, params):
             })
         
         print(f"\nProcessed {len(threads)} threads on page {page}")
-        page += 1
+
+        # Check if there is a "next" link to go to the next page
+        next_page_link = soup.find('link', rel='next')
+        if next_page_link:
+            page += 1
+        else:
+            print("No 'next' link found. Reached the last page.")
+            break
+        
         time.sleep(2)  # Be nice to the server
-    
+
     return fictions
 
 def save_to_csv(fictions, filename='spacebattles_fictions.csv'):
