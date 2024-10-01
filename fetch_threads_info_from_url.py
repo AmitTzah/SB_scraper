@@ -36,7 +36,13 @@ def fetch_fictions(base_url, params):
     
     while True:
         print(f"\nFetching page {page}...")
-        url = f"{base_url}/page-{page}?{params}"
+        
+        # Construct the URL correctly based on the page number
+        if page == 1:
+            url = f"{base_url}/?{params}"
+        else:
+            url = f"{base_url}/page-{page}?{params}"
+        
         print(f"URL: {url}")
         
         response = requests.get(url)
@@ -97,6 +103,10 @@ def fetch_fictions(base_url, params):
                 # Fetch watcher count from the individual thread page
                 watcher_count = fetch_watcher_count(thread_url)
                 print(f"Watcher Count: {watcher_count}")
+
+                # Be nice to the server
+                time.sleep(2)
+
                 
             else:
                 print("Couldn't find stats div")
@@ -131,7 +141,7 @@ def save_to_csv(fictions, filename='spacebattles_fictions.csv'):
 
 if __name__ == "__main__":
     base_url = "https://forums.spacebattles.com/forums/original-fiction.48"
-    params = "order=view_count&direction=desc&min_word_count=3000&max_word_count=7000"
+    params = "min_word_count=3000&max_word_count=7000"
     fictions = fetch_fictions(base_url, params)
     save_to_csv(fictions)
     print(f"\nScraped {len(fictions)} fictions and saved to spacebattles_fictions.csv")
