@@ -4,7 +4,6 @@ import csv
 import time
 
 def fetch_watcher_count(thread_url):
-    """Fetch the watcher count from an individual thread's page."""
     try:
         response = requests.get(thread_url)
         if response.status_code != 200:
@@ -12,13 +11,13 @@ def fetch_watcher_count(thread_url):
             return "N/A"
         
         soup = BeautifulSoup(response.content, 'html.parser')
-        header_content = soup.find('div', class_='threadmarkListingHeader-content')
+        header_content = soup.find('div', class_='threadmarkListingHeader-stats')
         watcher_count = "N/A"
         
         if header_content:
             pairs = header_content.find_all('dl', class_='pairs pairs--rows')
             for pair in pairs:
-                if pair.find('dt') and 'Watchers' in pair.find('dt').text:
+                if pair.find('dt') and 'watchers' in pair.find('dt').text.lower():
                     watcher_count = pair.find('dd').text.strip()
                     break
 
