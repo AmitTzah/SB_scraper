@@ -55,6 +55,13 @@ def fetch_fictions(base_url, params):
                 # Fetch likes
                 likes = stats.get('title', '').split(': ')[-1] if stats.get('title') else "N/A"
                 print(f"Likes: {likes}")
+
+                # Fetch tags
+                tags = []
+                tag_elements = thread.find_all('a', class_='tagItem')
+                for tag in tag_elements:
+                    tags.append(tag.text.strip())
+                print(f"Tags: {', '.join(tags)}")
                 
             else:
                 print("Couldn't find stats div")
@@ -66,9 +73,9 @@ def fetch_fictions(base_url, params):
                 'title': title,
                 'replies': replies,
                 'views': views,
-                'likes': likes
+                'likes': likes,
+                'tags': tags
             })
-        
         print(f"\nProcessed {len(threads)} threads on page {page}")
         page += 1
         time.sleep(2)  # Be nice to the server
