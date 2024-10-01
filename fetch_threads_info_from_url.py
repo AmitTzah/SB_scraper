@@ -3,6 +3,33 @@ from bs4 import BeautifulSoup
 import csv
 import time
 
+def fetch_watcher_count(thread_url):
+    """Fetch the watcher count from an individual thread's page."""
+    try:
+        response = requests.get(thread_url)
+        if response.status_code != 200:
+            print(f"Failed to fetch thread page: {thread_url}")
+            return "N/A"
+        
+        soup = BeautifulSoup(response.content, 'html.parser')
+
+        # Locate the container with the Watcher count
+        header_content = soup.find('div', class_='threadmarkListingHeader-content')
+        watcher_count = "N/A"
+        
+        if header_content:
+            # Search for all <dl> elements within the header content
+            pairs = header_content.find_all('dl', class_='pairs pairs--rows')
+            for pair in pairs:
+                if pair.find('dt') and 'Watchers' in pair.find('dt').text:
+                    watcher_count = pair.find('dd').text.strip()
+                    break
+
+        return watcher_count
+    except Exception as e:
+        print(f"Error fetching watcher count for {thread_url}: {e}")
+        return "N/A"
+
 def fetch_fictions(base_url, params):
     fictions = []
     page = 1
@@ -33,7 +60,11 @@ def fetch_fictions(base_url, params):
             
             if title_element:
                 title = title_element.text.strip()
+                thread_url = title_element['href']
+                if not thread_url.startswith('http'):
+                    thread_url = f"https://forums.spacebattles.com{thread_url}"
                 print(f"Found title: {title}")
+                print(f"Thread URL: {thread_url}")
             else:
                 print("Couldn't find title for this thread.")
                 continue
@@ -47,7 +78,7 @@ def fetch_fictions(base_url, params):
                 replies = replies_dl.find('dd').text.strip() if replies_dl else "N/A"
                 print(f"Replies: {replies}")
                 
-                # Fetch views (corrected)
+                # Fetch views
                 views_dl = stats.find_all('dl', class_='pairs--justified')[-1]
                 views = views_dl.find('dd').text.strip() if views_dl.find('dd') else "N/A"
                 print(f"Views: {views}")
@@ -62,20 +93,27 @@ def fetch_fictions(base_url, params):
                 for tag in tag_elements:
                     tags.append(tag.text.strip())
                 print(f"Tags: {', '.join(tags)}")
+
+                # Fetch watcher count from the individual thread page
+                watcher_count = fetch_watcher_count(thread_url)
+                print(f"Watcher Count: {watcher_count}")
                 
             else:
                 print("Couldn't find stats div")
                 replies = "N/A"
                 views = "N/A"
                 likes = "N/A"
+                watcher_count = "N/A"
             
             fictions.append({
                 'title': title,
                 'replies': replies,
                 'views': views,
                 'likes': likes,
-                'tags': tags
+                'tags': tags,
+                'watchers': watcher_count
             })
+        
         print(f"\nProcessed {len(threads)} threads on page {page}")
         page += 1
         time.sleep(2)  # Be nice to the server
@@ -84,7 +122,7 @@ def fetch_fictions(base_url, params):
 
 def save_to_csv(fictions, filename='spacebattles_fictions.csv'):
     with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
-        fieldnames = ['title', 'replies', 'views', 'likes']
+        fieldnames = ['title', 'replies', 'views', 'likes', 'tags', 'watchers']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         
         writer.writeheader()
