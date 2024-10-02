@@ -141,7 +141,7 @@ def save_to_csv(fictions, filename='spacebattles_fictions.csv'):
 
 if __name__ == "__main__":
     base_url = "https://forums.spacebattles.com/forums/original-fiction.48"
-    params = "min_word_count=3000&max_word_count=7000"
+    params = "last_days=365&min_word_count=3000&max_word_count=7000"
     fictions = fetch_fictions(base_url, params)
     save_to_csv(fictions)
     print(f"\nScraped {len(fictions)} fictions and saved to spacebattles_fictions.csv")
