@@ -26,11 +26,11 @@ def fetch_watcher_count(thread_url):
         print(f"Error fetching watcher count for {thread_url}: {e}")
         return "N/A"
 
-def fetch_fictions(base_url, params):
+def fetch_fictions(base_url, params, pages_to_scrape):
     fictions = []
     page = 1
 
-    while True:
+    while page <= pages_to_scrape:
         print(f"\nFetching page {page}...")
         
         if page == 1:
@@ -140,8 +140,13 @@ def save_to_csv(fictions, filename='spacebattles_fictions.csv'):
             writer.writerow(fiction)
 
 if __name__ == "__main__":
-    base_url = "https://forums.spacebattles.com/forums/original-fiction.48"
-    params = "last_days=365&min_word_count=3000&max_word_count=7000"
-    fictions = fetch_fictions(base_url, params)
+    base_url = "https://forums.spacebattles.com/forums/creative-writing.18"
+    params = "min_word_count=5400&max_word_count=6000&nodes[0]=48&nodes[1]=169"
+
+    #number of pages to scrape
+    pages_to_scrape = 18
+
+    fictions = fetch_fictions(base_url, params, pages_to_scrape)
+   
     save_to_csv(fictions)
     print(f"\nScraped {len(fictions)} fictions and saved to spacebattles_fictions.csv")
